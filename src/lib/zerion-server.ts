@@ -18,7 +18,7 @@ export class ZerionServerAPI {
   constructor() {
     this.apiKey = process.env.NEXT_PUBLIC_ZERION_API_KEY || '';
     if (!this.apiKey) {
-      console.warn('ZERION_API_KEY is not configured, using mock data');
+      throw new Error('ZERION_API_KEY is required. Please set it in your environment variables.');
     }
   }
 
@@ -29,65 +29,56 @@ export class ZerionServerAPI {
     };
   }
 
-  private async makeRequest<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+  private async makeRequest<T>(endpoint: string, params?: any): Promise<T> {
     try {
       const response: AxiosResponse<T> = await axios.get(`${this.baseURL}${endpoint}`, {
         headers: this.getHeaders(),
         params,
-        timeout: 10000,
       });
       return response.data;
     } catch (error: any) {
       if (error.response) {
+        const { status, data } = error.response;
         throw new ApiError({
-          message: error.response.data?.message || 'API request failed',
-          code: error.response.status.toString(),
-          details: error.response.data,
+          message: `Zerion API error: ${data?.error || 'Unknown error'}`,
+          code: status.toString(),
+          details: data,
         });
       } else if (error.request) {
         throw new ApiError({
           message: 'Network error - unable to reach Zerion API',
           code: 'NETWORK_ERROR',
+          details: error.message,
         });
       } else {
         throw new ApiError({
-          message: error.message || 'Unknown error occurred',
-          code: 'UNKNOWN_ERROR',
+          message: 'Request configuration error',
+          code: 'CONFIG_ERROR',
+          details: error.message,
         });
       }
     }
   }
 
   async getPortfolio(address: string): Promise<Portfolio> {
-    try {
-      const response = await this.makeRequest<ZerionPortfolioResponse>(`wallets/${address}/portfolio`);
-      
-      const attributes = response.data.attributes;
-      const totalValue = attributes.total?.positions || 0;
-      const changes = attributes.changes || {};
-      
-      // For now, return a simplified portfolio structure
-      // The actual positions would need to be fetched from a different endpoint
-      const positions: Position[] = [];
+    const response = await this.makeRequest<ZerionPortfolioResponse>(`wallets/${address}/portfolio`);
+    
+    const attributes = response.data.attributes;
+    // The total value is in attributes.total.positions, not positions_distribution_by_type
+    const totalValue = attributes.total?.positions || 0;
+    const changes = attributes.changes || {};
+    
+    // For now, return a simplified portfolio structure
+    // The actual positions would need to be fetched from a different endpoint
+    const positions: Position[] = [];
 
-      return {
-        id: response.data.id,
-        total_value: totalValue,
-        total_value_change_24h: changes.absolute_1d || 0,
-        positions,
-        chart_data: [], // Will be populated by getChart method
-      };
-    } catch (error) {
-      console.warn('Zerion API failed, returning mock data:', error);
-      // Return mock data for development
-      return {
-        id: `mock-${address}`,
-        total_value: 1250.50,
-        total_value_change_24h: 5.2,
-        positions: [],
-        chart_data: [],
-      };
-    }
+    return {
+      id: response.data.id,
+      total_value: totalValue,
+      total_value_change_24h: changes.absolute_1d || 0,
+      positions,
+      chart_data: [], // Will be populated by getChart method
+    };
   }
 
   async getTransactions(
@@ -98,11 +89,10 @@ export class ZerionServerAPI {
       cursor?: string;
     }
   ): Promise<{ data: Transaction[]; links?: { next?: string } }> {
-    try {
-      const response = await this.makeRequest<ZerionTransactionResponse>(
-        `wallets/${address}/transactions`,
-        params
-      );
+    const response = await this.makeRequest<ZerionTransactionResponse>(
+      `wallets/${address}/transactions`,
+      params
+    );
 
     const transactions: Transaction[] = response.data.map(tx => ({
       id: tx.id,
@@ -131,45 +121,6 @@ export class ZerionServerAPI {
       data: transactions,
       links: { next: response.links?.next },
     };
-    } catch (error) {
-      console.warn('Zerion API failed, returning mock transactions:', error);
-      // Return mock transaction data
-      const mockTransactions: Transaction[] = [
-        {
-          id: 'mock-1',
-          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          from_address: address,
-          to_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-          value_usd: 150.25,
-          timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-          status: 'success',
-          type: 'swap',
-          gas_used: 21000,
-          gas_price: 20000000000,
-          block_number: 18500000,
-          metadata: {},
-        },
-        {
-          id: 'mock-2',
-          hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-          from_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-          to_address: address,
-          value_usd: 75.50,
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-          status: 'success',
-          type: 'transfer',
-          gas_used: 21000,
-          gas_price: 18000000000,
-          block_number: 18499950,
-          metadata: {},
-        },
-      ];
-
-      return {
-        data: mockTransactions,
-        links: { next: undefined },
-      };
-    }
   }
 
   async getChart(

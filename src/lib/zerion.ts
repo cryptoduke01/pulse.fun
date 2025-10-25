@@ -36,6 +36,12 @@ export class ZerionAPI {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('Zerion API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          url: endpoint
+        });
         throw new ApiError({
           message: errorData.error || `HTTP ${response.status}: ${response.statusText}`,
           code: response.status.toString(),

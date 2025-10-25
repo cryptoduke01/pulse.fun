@@ -19,6 +19,7 @@ export function ProfileCard({
 }: ProfileCardProps & { isCurrentUser?: boolean }) {
   const { followWallet, unfollowWallet, checkIsFollowing, isLoading } = useFollow();
   const isCurrentlyFollowing = checkIsFollowing(wallet.address);
+  const [copied, setCopied] = useState(false);
 
   const handleFollow = async () => {
     try {
@@ -29,6 +30,18 @@ export function ProfileCard({
       }
     } catch (error) {
       console.error('Failed to toggle follow:', error);
+    }
+  };
+
+  const handleCopyAddress = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(wallet.address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy address:', error);
     }
   };
 
@@ -59,10 +72,19 @@ export function ProfileCard({
               {wallet.address.slice(0, 2).toUpperCase()}
             </span>
           </motion.div>
-          <div>
-            <span className="text-text-primary font-heading font-semibold">
-              {displayAddress}
-            </span>
+                   <div>
+                     <div className="flex items-center gap-2">
+                       <span className="text-text-primary font-heading font-semibold">
+                         {displayAddress}
+                       </span>
+                       <button
+                         onClick={handleCopyAddress}
+                         className="text-text-secondary hover:text-text-primary transition-colors"
+                         title="Copy address"
+                       >
+                         {copied ? '✓' : '📋'}
+                       </button>
+                     </div>
             <div className="flex items-center gap-2 mt-1">
               <motion.span 
                 whileHover={{ scale: 1.05 }}

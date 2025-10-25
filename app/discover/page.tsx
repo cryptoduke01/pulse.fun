@@ -3,7 +3,7 @@
 import { Navigation } from '../../src/components/Navigation';
 import { ProfileCard } from '../../src/components/ProfileCard';
 import { useConnectedWallet, useFollowing } from '../../src/store/useStore';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 // Using text icons instead of lucide-react
@@ -97,7 +97,7 @@ const mockWallets = [
     total_trades: 234,
     active_days: 45,
     trading_style: {
-      type: 'nft collector' as const,
+      type: 'nft_collector' as const,
       score: 65,
       confidence: 72,
       traits: ['NFT trading', 'Art collection', 'Cultural investing'],
@@ -123,7 +123,7 @@ const mockWallets = [
     total_trades: 2100,
     active_days: 120,
     trading_style: {
-      type: 'day trader' as const,
+      type: 'day_trader' as const,
       score: 92,
       confidence: 95,
       traits: ['Day trading', 'Technical analysis', 'Quick decisions'],
@@ -135,6 +135,8 @@ const mockWallets = [
       profit_factor: 1.1,
       sharpe_ratio: 0.9,
       max_drawdown: -18.7,
+      best_trade: 7000,
+      worst_trade: -4000,
       risk_score: 85,
     },
   },
@@ -149,13 +151,78 @@ export default function DiscoverPage() {
   const [sortBy, setSortBy] = useState<SortType>('trending');
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [realWallets, setRealWallets] = useState<any[]>([]);
+  const [trendingWallets, setTrendingWallets] = useState<any[]>([]);
   
   const connectedWallet = useConnectedWallet();
   const following = useFollowing();
 
+  // Fetch trending wallets on component mount
+  useEffect(() => {
+    fetchTrendingWallets();
+  }, []);
+
+  const fetchTrendingWallets = async () => {
+    try {
+      const response = await fetch('/api/trending');
+      if (response.ok) {
+        const data = await response.json();
+        setTrendingWallets(data.wallets || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch trending wallets:', error);
+    }
+  };
+
+  // Function to fetch real wallet data
+  const fetchRealWalletData = async (address: string) => {
+    if (!address || address.length < 42) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/portfolio/${address}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Create a wallet object from the real data
+        const realWallet = {
+          id: address,
+          address: address,
+          ensName: null,
+          total_value: data.total_value || 0,
+          value_change_24h: data.total_value_change_24h || 0,
+          total_trades: 0, // Will be fetched from transactions
+          active_days: 0,
+          trading_style: {
+            type: 'unknown' as const,
+            score: 0,
+            confidence: 0,
+            traits: ['Real wallet data'],
+          },
+          performance: {
+            total_trades: 0,
+            win_rate: 0,
+            average_hold_time: 0,
+            profit_factor: 0,
+            sharpe_ratio: 0,
+            max_drawdown: 0,
+            best_trade: 0,
+            worst_trade: 0,
+            risk_score: 0,
+          },
+        };
+        setRealWallets([realWallet]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch wallet data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Filter and sort wallets
   const filteredWallets = useMemo(() => {
-    let filtered = mockWallets;
+    let filtered = searchQuery && realWallets.length > 0 ? realWallets : 
+                   trendingWallets.length > 0 ? trendingWallets : [];
 
     // Search filter
     if (searchQuery) {
@@ -193,7 +260,17 @@ export default function DiscoverPage() {
     }
 
     return filtered;
-  }, [searchQuery, selectedFilter, sortBy]);
+  }, [searchQuery, selectedFilter, sortBy, realWallets]);
+
+  // Handle search with real data fetch
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query && query.length >= 42) {
+      fetchRealWalletData(query);
+    } else {
+      setRealWallets([]);
+    }
+  };
 
   const tradingStyleFilters = [
     { value: 'all', label: 'All Styles', icon: '👥' },
@@ -276,13 +353,13 @@ export default function DiscoverPage() {
               {/* Search Bar */}
               <div className="flex-1 relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary text-lg">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Search by address or ENS name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-                />
+                       <input
+                         type="text"
+                         placeholder="Search by address or ENS name..."
+                         value={searchQuery}
+                         onChange={(e) => handleSearch(e.target.value)}
+                         className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
+                       />
               </div>
 
               {/* Filter Toggle */}
@@ -377,12 +454,19 @@ export default function DiscoverPage() {
                   stats={{
                     total_value: wallet.total_value,
                     value_change_24h: wallet.value_change_24h,
+                    value_change_7d: 0,
+                    value_change_30d: 0,
                     total_trades: wallet.total_trades,
                     active_days: wallet.active_days,
-                    win_rate: wallet.performance.win_rate,
-                    avg_hold_time: wallet.performance.average_hold_time,
+                    top_holding: {
+                      id: 'unknown',
+                      name: 'Unknown Asset',
+                      symbol: 'UNK',
+                      price: 0,
+                      price_change_24h: 0,
+                      image_url: '',
+                    },
                     trading_style: wallet.trading_style,
-                    confidence: wallet.trading_style.confidence,
                     performance: wallet.performance,
                   }}
                   isFollowing={following.includes(wallet.address)}

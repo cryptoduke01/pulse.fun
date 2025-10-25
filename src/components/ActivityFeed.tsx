@@ -6,10 +6,12 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface Activity {
   id: string;
-  walletAddress: string;
+  wallet_address: string;
   type: string;
-  data: any;
-  createdAt: string;
+  description: string;
+  value_usd: number;
+  timestamp: string | Date;
+  metadata: any;
 }
 
 interface ActivityFeedProps {
@@ -83,20 +85,8 @@ export function ActivityFeed({ walletAddress, limit = 50 }: ActivityFeedProps) {
   };
 
   const formatActivityMessage = (activity: Activity) => {
-    switch (activity.type) {
-      case 'follow':
-        return `Started following ${activity.data?.targetAddress?.slice(0, 6)}...${activity.data?.targetAddress?.slice(-4)}`;
-      case 'unfollow':
-        return `Unfollowed ${activity.data?.targetAddress?.slice(0, 6)}...${activity.data?.targetAddress?.slice(-4)}`;
-      case 'transaction_created':
-        return `New transaction: ${activity.data?.hash?.slice(0, 8)}...`;
-      case 'portfolio_updated':
-        return `Portfolio updated: $${(activity.data?.totalValue / 1000000).toFixed(1)}M (${activity.data?.change >= 0 ? '+' : ''}${activity.data?.change?.toFixed(1)}%)`;
-      case 'activity_detected':
-        return `Activity detected: ${activity.data?.type}`;
-      default:
-        return 'New activity';
-    }
+    // Use the description from the API response
+    return activity.description;
   };
 
   if (isLoading) {
@@ -157,12 +147,22 @@ export function ActivityFeed({ walletAddress, limit = 50 }: ActivityFeedProps) {
                   {formatActivityMessage(activity)}
                 </span>
                 <span className="text-text-secondary text-sm">
-                  {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                  {(() => {
+                    try {
+                      const date = new Date(activity.timestamp);
+                      if (isNaN(date.getTime())) {
+                        return 'Unknown time';
+                      }
+                      return formatDistanceToNow(date, { addSuffix: true });
+                    } catch (error) {
+                      return 'Unknown time';
+                    }
+                  })()}
                 </span>
               </div>
               
               <div className="text-text-secondary text-sm">
-                {activity.walletAddress.slice(0, 6)}...{activity.walletAddress.slice(-4)}
+                {activity.wallet_address.slice(0, 6)}...{activity.wallet_address.slice(-4)}
               </div>
             </div>
           </div>

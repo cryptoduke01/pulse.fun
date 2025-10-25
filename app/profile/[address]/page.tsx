@@ -154,16 +154,7 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
             <div className="space-y-8">
               {/* Wallet Stats */}
               {stats?.data && (
-                <WalletStats
-                  totalValue={portfolio?.data?.total_value || 0}
-                  totalValueChange24h={portfolio?.data?.total_value_change_24h || 0}
-                  totalTrades={stats.data.total_trades}
-                  activeDays={stats.data.active_days}
-                  winRate={stats.data.win_rate}
-                  avgHoldTime={stats.data.avg_hold_time}
-                  tradingStyle={stats.data.trading_style}
-                  confidence={stats.data.confidence}
-                />
+                <WalletStats stats={stats.data} />
               )}
 
               {/* Quick Actions */}

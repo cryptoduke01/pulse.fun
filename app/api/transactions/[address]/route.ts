@@ -24,7 +24,7 @@ export async function GET(
       );
     }
 
-    const pageSize = parseInt(searchParams.get('page_size') || '50');
+    const pageSize = parseInt(searchParams.get('page_size') || '100'); // Increased to get more transactions
     const cursor = searchParams.get('cursor') || undefined;
 
     const result = await zerionServerAPI.getTransactions(address, {
@@ -34,7 +34,31 @@ export async function GET(
     
     return NextResponse.json(result);
   } catch (error: any) {
-    console.error('Transactions API error:', error);
+    console.error('Transactions API error:', {
+      error: error,
+      message: error.message,
+      code: error.code,
+      address: address,
+      stack: error.stack
+    });
+    
+    // Handle specific error types
+    if (error.code === 'ZERION_AUTH_ERROR') {
+      return NextResponse.json(
+        { error: 'Invalid Zerion API key', code: 'AUTH_ERROR' },
+        { status: 401 }
+      );
+    } else if (error.code === 'ZERION_RATE_LIMIT') {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded', code: 'RATE_LIMIT' },
+        { status: 429 }
+      );
+    } else if (error.code === 'NETWORK_ERROR') {
+      return NextResponse.json(
+        { error: 'Network error', code: 'NETWORK_ERROR' },
+        { status: 503 }
+      );
+    }
     
     return NextResponse.json(
       { 

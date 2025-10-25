@@ -21,7 +21,7 @@ export function usePortfolio(address: string) {
   });
 }
 
-export function useTransactions(address: string, pageSize: number = 50) {
+export function useTransactions(address: string, pageSize: number = 100) {
   return useInfiniteQuery({
     queryKey: ['transactions', address],
     queryFn: ({ pageParam }) => 
@@ -57,13 +57,22 @@ export function useChart(address: string, period: '1d' | '7d' | '30d' | '90d' | 
 export function useWalletStats(address: string) {
   return useQuery({
     queryKey: ['walletStats', address],
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 (invalid API key) or 400 (bad request)
+      if (error?.response?.status === 401 || error?.response?.status === 400) {
+        return false;
+      }
+      return failureCount < 2; // Reduced retries to avoid overwhelming the API
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Max 10 seconds
     queryFn: async () => {
       console.log('useWalletStats: Starting for address:', address);
       
       try {
+        // Try with smaller page size first to avoid rate limits
         const [portfolio, transactionsResult] = await Promise.all([
           zerionAPI.getPortfolio(address),
-          zerionAPI.getTransactions(address, { page_size: 100 }),
+          zerionAPI.getTransactions(address, { page_size: 20 }), // Even smaller to avoid API limits
         ]);
 
         console.log('useWalletStats: Got portfolio:', portfolio);
@@ -79,7 +88,31 @@ export function useWalletStats(address: string) {
 
         return stats;
       } catch (error) {
-        console.error('useWalletStats: Error:', error);
+        console.error('useWalletStats: Error details:', {
+          error: error,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          address: address
+        });
+        
+        // If it's a rate limit or API error, try with even smaller page size
+        if (error instanceof Error && (error.message.includes('rate limit') || error.message.includes('API error'))) {
+          console.log('useWalletStats: Retrying with smaller page size...');
+          try {
+            const [portfolio, transactionsResult] = await Promise.all([
+              zerionAPI.getPortfolio(address),
+              zerionAPI.getTransactions(address, { page_size: 10 }), // Minimal page size
+            ]);
+            
+            const tradingStyle = analyzeTradingStyle(transactionsResult.data || []);
+            const stats = calculateWalletStats(portfolio, transactionsResult.data || [], tradingStyle);
+            return stats;
+          } catch (retryError) {
+            console.error('useWalletStats: Retry also failed:', retryError);
+            throw retryError;
+          }
+        }
+        
         throw error;
       }
     },

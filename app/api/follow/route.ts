@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DatabaseService } from '../../../src/lib/database';
+
+// Simple in-memory storage for development
+const followData = new Map<string, string[]>();
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,16 +14,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await DatabaseService.followWallet(walletAddress, targetAddress);
+    // Get current following list
+    const currentFollowing = followData.get(walletAddress) || [];
     
-    // Log activity
-    await DatabaseService.logActivity(walletAddress, 'follow', { targetAddress });
-
-    const following = await DatabaseService.getFollowing(walletAddress);
+    // Add target to following list if not already following
+    if (!currentFollowing.includes(targetAddress)) {
+      currentFollowing.push(targetAddress);
+      followData.set(walletAddress, currentFollowing);
+    }
 
     return NextResponse.json({
       success: true,
-      following,
+      following: currentFollowing,
     });
   } catch (error) {
     console.error('Follow API error:', error);
@@ -43,16 +47,16 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await DatabaseService.unfollowWallet(walletAddress, targetAddress);
+                                                                                                                                                                                                                                                                          // Get current following list
+    const currentFollowing = followData.get(walletAddress) || [];
     
-    // Log activity
-    await DatabaseService.logActivity(walletAddress, 'unfollow', { targetAddress });
-
-    const following = await DatabaseService.getFollowing(walletAddress);
+    // Remove target from following list
+    const updatedFollowing = currentFollowing.filter(addr => addr !== targetAddress);
+    followData.set(walletAddress, updatedFollowing);
 
     return NextResponse.json({
       success: true,
-      following,
+      following: updatedFollowing,
     });
   } catch (error) {
     console.error('Unfollow API error:', error);
@@ -75,7 +79,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const following = await DatabaseService.getFollowing(walletAddress);
+    const following = followData.get(walletAddress) || [];
 
     return NextResponse.json({
       following,
