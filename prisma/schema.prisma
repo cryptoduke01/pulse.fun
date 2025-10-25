@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique
+  ensName        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Social features
+  following     Follow[] @relation("FollowingWallets")
+  followers     Follow[] @relation("FollowerWallets")
+  
+  // User preferences
+  preferences   UserPreferences?
+  
+  @@map("users")
+}
+
+model Follow {
+  id           String   @id @default(cuid())
+  followerId   String
+  followingId  String
+  createdAt    DateTime @default(now())
+  
+  follower     User @relation("FollowingWallets", fields: [followerId], references: [id], onDelete: Cascade)
+  following    User @relation("FollowerWallets", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model UserPreferences {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  theme     String   @default("dark")
+  notifications Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_preferences")
+}
+
+model WalletProfile {
+  id                String   @id @default(cuid())
+  walletAddress     String   @unique
+  ensName           String?
+  totalValue        Float    @default(0)
+  valueChange24h    Float    @default(0)
+  totalTrades       Int      @default(0)
+  activeDays        Int      @default(0)
+  winRate          Float    @default(0)
+  avgHoldTime       Float    @default(0)
+  riskScore         Float    @default(0)
+  tradingStyle      String   @default("unknown")
+  confidence        Float    @default(0)
+  traits            String[] @default([])
+  lastUpdated       DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("wallet_profiles")
+}
+
+model TrendingWallet {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique
+  rank          Int
+  score         Float
+  period        String   @default("weekly") // weekly, monthly, all-time
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("trending_wallets")
+}
+
+model Activity {
+  id            String   @id @default(cuid())
+  walletAddress String
+  type          String   // transaction, follow, unfollow, etc.
+  data          Json?
+  createdAt     DateTime @default(now())
+  
+  @@map("activities")
+}

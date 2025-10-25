@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:setup": "node scripts/setup-db.js",
+    "db:seed": "npx prisma db seed",
+    "db:migrate": "npx prisma migrate dev",
+    "db:generate": "npx prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
@@ -15,6 +19,7 @@
     "axios": "^1.12.2",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.24",
+    "lucide-react": "^0.548.0",
     "next": "16.0.0",
     "prisma": "^6.18.0",
     "react": "19.2.0",
@@ -23,6 +28,9 @@
     "viem": "^2.38.4",
     "wagmi": "^2.18.2",
     "zustand": "^5.0.8"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
