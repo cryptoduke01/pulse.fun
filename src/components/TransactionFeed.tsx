@@ -4,34 +4,43 @@ import { TransactionFeedProps } from '../types';
 import { formatCurrency, formatNumber } from '../lib/analysis';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
+import { FileText, ArrowUpRight, ArrowDownLeft, CheckCircle, Coins, RefreshCw, ExternalLink } from 'lucide-react';
 
 export function TransactionFeed({ 
   transactions, 
   isLoading = false, 
   onLoadMore, 
-  hasMore = false 
-}: TransactionFeedProps) {
+  hasMore = false,
+  showAll = false,
+  maxInitial = 5
+}: TransactionFeedProps & { showAll?: boolean; maxInitial?: number }) {
   const [expandedTx, setExpandedTx] = useState<string | null>(null);
+  const [showAllTransactions, setShowAllTransactions] = useState(showAll);
+
+  // Show only first 5 transactions initially, or all if showAllTransactions is true
+  const displayedTransactions = showAllTransactions 
+    ? transactions 
+    : transactions.slice(0, maxInitial);
 
   const getTransactionIcon = (tx: any) => {
     // Handle null/undefined transaction objects
-    if (!tx) return '📋';
+    if (!tx) return <FileText className="w-4 h-4" />;
     
     // Determine transaction type from the transaction data
     const type = tx.type || 'unknown';
     switch (type) {
       case 'swap':
-        return '🔄';
+        return <RefreshCw className="w-4 h-4" />;
       case 'transfer':
-        return '📤';
+        return <ArrowUpRight className="w-4 h-4" />;
       case 'approval':
-        return '✅';
+        return <CheckCircle className="w-4 h-4" />;
       case 'mint':
-        return '🪙';
+        return <Coins className="w-4 h-4" />;
       case 'burn':
-        return '🔥';
+        return <ArrowDownLeft className="w-4 h-4" />;
       default:
-        return '📋';
+        return <FileText className="w-4 h-4" />;
     }
   };
 
@@ -94,7 +103,7 @@ export function TransactionFeed({
 
   return (
     <div className="space-y-4">
-      {transactions.filter(tx => tx).map((tx) => (
+      {displayedTransactions.filter(tx => tx).map((tx) => (
         <div
           key={tx.id}
           className="bg-surface border border-border rounded-lg p-4 hover:border-accent/50 transition-all duration-200"
@@ -185,6 +194,18 @@ export function TransactionFeed({
           </button>
         </div>
       ))}
+
+      {/* View More / View Less Button */}
+      {transactions.length > maxInitial && (
+        <div className="text-center pt-4">
+          <button
+            onClick={() => setShowAllTransactions(!showAllTransactions)}
+            className="bg-accent/10 text-accent hover:bg-accent/20 px-6 py-2 rounded-lg font-medium transition-all duration-200"
+          >
+            {showAllTransactions ? 'Show Less' : `View More (${transactions.length - maxInitial} more)`}
+          </button>
+        </div>
+      )}
 
       {/* Load more button */}
       {hasMore && onLoadMore && (

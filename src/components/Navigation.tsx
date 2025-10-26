@@ -17,6 +17,7 @@ export function Navigation() {
     { href: '/', label: 'Home' },
     { href: '/feed', label: 'Feed', requiresWallet: true },
     { href: '/discover', label: 'Discover' },
+    ...(connectedWallet ? [{ href: `/profile/${connectedWallet}`, label: 'My Profile', requiresWallet: true }] : []),
   ];
 
   const isActive = (href: string) => {

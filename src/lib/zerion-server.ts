@@ -125,11 +125,23 @@ export class ZerionServerAPI {
 
   async getChart(
     address: string, 
-    period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d'
+    period: '1d' | '7d' | '30d' | '90d' | '1y' | 'max' = '30d'
   ): Promise<{ data: { attributes: { points: ChartDataPoint[] } } }> {
+    // Map period to Zerion's expected format
+    const periodMap: Record<string, string> = {
+      '1d': 'day',
+      '7d': 'week', 
+      '30d': 'month',
+      '90d': 'month', // Zerion doesn't have 90d, use month
+      '1y': 'year',
+      'max': 'max'
+    };
+
+    const zerionPeriod = periodMap[period] || 'month';
+
     const response = await this.makeRequest<ZerionChartResponse>(
-      `wallets/${address}/chart`,
-      { period }
+      `wallets/${address}/charts/${zerionPeriod}`,
+      { currency: 'usd' }
     );
 
     return {
@@ -145,7 +157,7 @@ export class ZerionServerAPI {
     };
   }
 
-  async getPortfolioWithChart(address: string, period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d'): Promise<Portfolio> {
+  async getPortfolioWithChart(address: string, period: '1d' | '7d' | '30d' | '90d' | '1y' | 'max' = '30d'): Promise<Portfolio> {
     const [portfolio, chartData] = await Promise.all([
       this.getPortfolio(address),
       this.getChart(address, period),

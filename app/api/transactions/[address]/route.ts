@@ -5,8 +5,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ address: string }> }
 ) {
+  let address: string;
+  
   try {
-    const { address } = await params;
+    const resolvedParams = await params;
+    address = resolvedParams.address;
     const { searchParams } = new URL(request.url);
     
     if (!address) {
@@ -38,7 +41,7 @@ export async function GET(
       error: error,
       message: error.message,
       code: error.code,
-      address: address,
+      address: address || 'unknown',
       stack: error.stack
     });
     

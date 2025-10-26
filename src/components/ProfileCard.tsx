@@ -6,7 +6,8 @@ import { useIsFollowing, useWalletActions } from '../store/useStore';
 import { useFollow } from '../hooks/useFollow';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Copy, Check, User, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 
 export function ProfileCard({ 
   wallet, 
@@ -20,6 +21,11 @@ export function ProfileCard({
   const { followWallet, unfollowWallet, checkIsFollowing, isLoading } = useFollow();
   const isCurrentlyFollowing = checkIsFollowing(wallet.address);
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
+
+  const handleProfileClick = () => {
+    router.push(`/profile/${wallet.address}`);
+  };
 
   const handleFollow = async () => {
     try {
@@ -48,14 +54,14 @@ export function ProfileCard({
   const displayAddress = wallet.ensName || `${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)}`;
 
   return (
-    <Link href={`/profile/${wallet.address}`} className="block w-full">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -5, scale: 1.02 }}
-        transition={{ duration: 0.3 }}
-        className="glass-card p-4 lg:p-6 hover:border-accent/50 transition-all duration-300 cursor-pointer h-full w-full"
-      >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5, scale: 1.02 }}
+      transition={{ duration: 0.3 }}
+      className="glass-card p-4 lg:p-6 hover:border-accent/50 transition-all duration-300 cursor-pointer h-full w-full"
+      onClick={handleProfileClick}
+    >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -64,38 +70,41 @@ export function ProfileCard({
               YOU
             </div>
           )}
-          <motion.div 
-            whileHover={{ rotate: 10, scale: 1.1 }}
-            className="w-12 h-12 bg-gradient-to-br from-accent to-purple-600 rounded-full flex items-center justify-center glow"
-          >
-            <span className="text-white font-heading font-bold text-lg">
-              {wallet.address.slice(0, 2).toUpperCase()}
-            </span>
-          </motion.div>
+                   <motion.div
+                     whileHover={{ rotate: 10, scale: 1.1 }}
+                     className="w-12 h-12 bg-gradient-to-br from-accent to-purple-600 rounded-full flex items-center justify-center glow"
+                   >
+                     <User className="w-6 h-6 text-white" />
+                   </motion.div>
                    <div>
                      <div className="flex items-center gap-2">
                        <span className="text-text-primary font-heading font-semibold">
                          {displayAddress}
                        </span>
-                       <button
+                       <motion.button
                          onClick={handleCopyAddress}
                          className="text-text-secondary hover:text-text-primary transition-colors"
                          title="Copy address"
+                         whileHover={{ scale: 1.1 }}
+                         whileTap={{ scale: 0.95 }}
+                         animate={copied ? { scale: [1, 1.2, 1] } : {}}
+                         transition={{ duration: 0.2 }}
                        >
-                         {copied ? '✓' : '📋'}
-                       </button>
+                         {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                       </motion.button>
                      </div>
             <div className="flex items-center gap-2 mt-1">
-              <motion.span 
-                whileHover={{ scale: 1.05 }}
-                className="text-body-sm font-medium px-2 py-1 rounded-full"
-                style={{ 
-                  backgroundColor: getTradingStyleColor(stats.trading_style.type) + '20',
-                  color: getTradingStyleColor(stats.trading_style.type)
-                }}
-              >
-                {getTradingStyleEmoji(stats.trading_style.type)} {stats.trading_style.type.replace('_', ' ')}
-              </motion.span>
+                       <motion.span
+                         whileHover={{ scale: 1.05 }}
+                         className="text-body-sm font-medium px-2 py-1 rounded-full flex items-center gap-1"
+                         style={{
+                           backgroundColor: getTradingStyleColor(stats.trading_style.type) + '20',
+                           color: getTradingStyleColor(stats.trading_style.type)
+                         }}
+                       >
+                         <BarChart3 className="w-3 h-3" />
+                         {stats.trading_style.type.replace('_', ' ')}
+                       </motion.span>
               <span className="text-text-secondary text-body-sm">
                 {stats.trading_style.score}% confidence
               </span>
@@ -225,6 +234,5 @@ export function ProfileCard({
         </motion.div>
       )}
     </motion.div>
-    </Link>
   );
 }

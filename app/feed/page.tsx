@@ -6,6 +6,8 @@ import { TransactionFeed } from '../../src/components/TransactionFeed';
 import { PerformanceChart } from '../../src/components/PerformanceChart';
 import { WalletStats } from '../../src/components/WalletStats';
 import { ActivityFeed } from '../../src/components/ActivityFeed';
+import { TradingSignals } from '../../src/components/TradingSignals';
+import { PageLoading } from '../../src/components/Loading';
 import { useWalletData } from '../../src/hooks/useWalletData';
 import { useConnectedWallet, useFollowing } from '../../src/store/useStore';
 import { useRouter } from 'next/navigation';
@@ -38,68 +40,7 @@ export default function FeedPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <main className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-8">
-              <div className="h-8 bg-surface rounded w-1/3 mb-2 animate-pulse"></div>
-              <div className="h-4 bg-surface rounded w-1/2 animate-pulse"></div>
-            </div>
-            
-            <div className="grid lg:grid-cols-3 gap-8">
-              {/* Main Content Loading */}
-              <div className="lg:col-span-2 space-y-8">
-                {/* Profile Card Loading */}
-                <div className="bg-surface border border-border rounded-xl p-6 animate-pulse">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-background/50 rounded-full"></div>
-                    <div className="flex-1">
-                      <div className="h-6 bg-background/50 rounded w-1/3 mb-2"></div>
-                      <div className="h-4 bg-background/50 rounded w-1/4"></div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="h-16 bg-background/50 rounded"></div>
-                    <div className="h-16 bg-background/50 rounded"></div>
-                    <div className="h-16 bg-background/50 rounded"></div>
-                  </div>
-                </div>
-
-                {/* Chart Loading */}
-                <div className="bg-surface border border-border rounded-xl p-6 animate-pulse">
-                  <div className="h-6 bg-background/50 rounded w-1/4 mb-4"></div>
-                  <div className="h-64 bg-background/50 rounded"></div>
-                </div>
-
-                {/* Activity Feed Loading */}
-                <div className="bg-surface border border-border rounded-xl p-6 animate-pulse">
-                  <div className="h-6 bg-background/50 rounded w-1/4 mb-4"></div>
-                  <div className="space-y-3">
-                    <div className="h-16 bg-background/50 rounded"></div>
-                    <div className="h-16 bg-background/50 rounded"></div>
-                    <div className="h-16 bg-background/50 rounded"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sidebar Loading */}
-              <div className="space-y-8">
-                <div className="bg-surface border border-border rounded-xl p-6 animate-pulse">
-                  <div className="h-6 bg-background/50 rounded w-1/3 mb-4"></div>
-                  <div className="space-y-3">
-                    <div className="h-12 bg-background/50 rounded"></div>
-                    <div className="h-12 bg-background/50 rounded"></div>
-                    <div className="h-12 bg-background/50 rounded"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
+    return <PageLoading message="Loading your feed..." />;
   }
 
   if (error) {
@@ -161,9 +102,9 @@ export default function FeedPage() {
               {/* Performance Chart */}
               <div className="bg-surface border border-border rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-text-primary mb-4">Portfolio Performance</h3>
-                {portfolio?.data && portfolio.data.chart_data && portfolio.data.chart_data.length > 0 ? (
-                  <PerformanceChart data={portfolio.data.chart_data} height={300} />
-                ) : (
+                       {portfolio?.data && portfolio.data.chart_data && portfolio.data.chart_data.length > 0 ? (
+                         <PerformanceChart data={portfolio.data.chart_data} height={300} isLoading={portfolio.isLoading} />
+                       ) : (
                   <div className="flex items-center justify-center bg-background/50 rounded-lg h-[300px]">
                     <div className="text-center">
                       <div className="text-4xl mb-2">📊</div>
@@ -179,19 +120,6 @@ export default function FeedPage() {
                 <h3 className="text-lg font-semibold text-text-primary mb-4">Live Activity</h3>
                 <ActivityFeed walletAddress={connectedWallet} />
               </div>
-
-              {/* Transaction Feed */}
-              {transactions && (
-                <div className="bg-surface border border-border rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-text-primary mb-4">Recent Transactions</h3>
-                  <TransactionFeed 
-                    transactions={transactions.data?.pages.flatMap(page => page.transactions) || []}
-                    isLoading={transactions.isLoading}
-                    hasMore={transactions.hasNextPage}
-                    onLoadMore={() => transactions.fetchNextPage()}
-                  />
-                </div>
-              )}
 
               {/* Following Section */}
               {following.length > 0 ? (
@@ -225,10 +153,13 @@ export default function FeedPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* Trading Signals */}
+              <TradingSignals />
+
               {/* Wallet Stats */}
-              {stats?.data && (
-                <WalletStats stats={stats.data} />
-              )}
+                       {stats?.data && (
+                         <WalletStats stats={stats.data} isLoading={stats.isLoading} />
+                       )}
 
               {/* Following List */}
               <div className="bg-surface border border-border rounded-xl p-6">

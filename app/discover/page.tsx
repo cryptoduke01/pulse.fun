@@ -2,6 +2,7 @@
 
 import { Navigation } from '../../src/components/Navigation';
 import { ProfileCard } from '../../src/components/ProfileCard';
+import { PageLoading } from '../../src/components/Loading';
 import { useConnectedWallet, useFollowing } from '../../src/store/useStore';
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -151,8 +152,15 @@ export default function DiscoverPage() {
   const [sortBy, setSortBy] = useState<SortType>('trending');
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingTrending, setIsLoadingTrending] = useState(true); // Add loading state for trending
   const [realWallets, setRealWallets] = useState<any[]>([]);
   const [trendingWallets, setTrendingWallets] = useState<any[]>([]);
+  const [trendingPagination, setTrendingPagination] = useState({
+    offset: 0,
+    limit: 10,
+    total: 0,
+    hasMore: false
+  });
   
   const connectedWallet = useConnectedWallet();
   const following = useFollowing();
@@ -162,15 +170,30 @@ export default function DiscoverPage() {
     fetchTrendingWallets();
   }, []);
 
-  const fetchTrendingWallets = async () => {
+  const fetchTrendingWallets = async (loadMore = false) => {
+    if (loadMore) {
+      setIsLoading(true);
+    } else {
+      setIsLoadingTrending(true);
+    }
+    
     try {
-      const response = await fetch('/api/trending');
+      const offset = loadMore ? trendingPagination.offset + trendingPagination.limit : 0;
+      const response = await fetch(`/api/trending?limit=10&offset=${offset}`);
       if (response.ok) {
         const data = await response.json();
-        setTrendingWallets(data.wallets || []);
+        if (loadMore) {
+          setTrendingWallets(prev => [...prev, ...data.wallets]);
+        } else {
+          setTrendingWallets(data.wallets || []);
+        }
+        setTrendingPagination(data.pagination);
       }
     } catch (error) {
       console.error('Failed to fetch trending wallets:', error);
+    } finally {
+      setIsLoadingTrending(false);
+      setIsLoading(false);
     }
   };
 
@@ -221,8 +244,13 @@ export default function DiscoverPage() {
 
   // Filter and sort wallets
   const filteredWallets = useMemo(() => {
-    let filtered = searchQuery && realWallets.length > 0 ? realWallets : 
-                   trendingWallets.length > 0 ? trendingWallets : [];
+    // Only show trending wallets when they're loaded, don't fall back to mock data
+    let filtered = trendingWallets;
+    
+    // If user is searching, use realWallets if available, otherwise use trending wallets
+    if (searchQuery) {
+      filtered = realWallets.length > 0 ? realWallets : trendingWallets;
+    }
 
     // Search filter
     if (searchQuery) {
@@ -288,49 +316,8 @@ export default function DiscoverPage() {
     { value: 'performance', label: 'Performance' },
   ];
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <main className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-8">
-              <div className="h-8 bg-surface rounded w-1/3 mb-2 animate-pulse"></div>
-              <div className="h-4 bg-surface rounded w-1/2 animate-pulse"></div>
-            </div>
-            
-            {/* Search and Filters Loading */}
-            <div className="bg-surface border border-border rounded-xl p-6 mb-8 animate-pulse">
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1 h-12 bg-background/50 rounded"></div>
-                <div className="h-12 bg-background/50 rounded w-32"></div>
-                <div className="h-12 bg-background/50 rounded w-40"></div>
-              </div>
-            </div>
-
-            {/* Wallet Grid Loading */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-surface border border-border rounded-xl p-6 animate-pulse">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-background/50 rounded-full"></div>
-                    <div className="flex-1">
-                      <div className="h-6 bg-background/50 rounded w-1/3 mb-2"></div>
-                      <div className="h-4 bg-background/50 rounded w-1/4"></div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="h-16 bg-background/50 rounded"></div>
-                    <div className="h-16 bg-background/50 rounded"></div>
-                    <div className="h-16 bg-background/50 rounded"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </main>
-      </div>
-    );
+         if (isLoading || isLoadingTrending) {
+    return <PageLoading message="Loading trending wallets..." />;
   }
 
   return (
@@ -476,10 +463,23 @@ export default function DiscoverPage() {
             ))}
           </div>
 
+          {/* Load More Button */}
+          {!searchQuery && trendingPagination.hasMore && (
+            <div className="text-center pt-8">
+              <button
+                onClick={() => fetchTrendingWallets(true)}
+                disabled={isLoading}
+                className="bg-accent/10 text-accent hover:bg-accent/20 px-8 py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Loading...' : 'Load More Wallets'}
+              </button>
+            </div>
+          )}
+
           {/* Empty State */}
           {filteredWallets.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
+              <div className="text-text-secondary text-6xl mb-4">SEARCH</div>
               <h3 className="text-xl font-semibold text-text-primary mb-2">No wallets found</h3>
               <p className="text-text-secondary mb-6">
                 Try adjusting your search or filters to find more wallets

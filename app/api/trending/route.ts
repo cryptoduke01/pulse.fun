@@ -18,11 +18,13 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = parseInt(searchParams.get('offset') || '0');
 
     // Fetch real data for trending wallets using Zerion API directly
     const wallets = [];
+    const addressesToFetch = trendingAddresses.slice(offset, offset + limit);
     
-    for (const address of trendingAddresses.slice(0, limit)) {
+    for (const address of addressesToFetch) {
       try {
         // Call Zerion API directly
         const zerionResponse = await fetch(`https://api.zerion.io/v1/wallets/${address}/portfolio`, {
@@ -111,6 +113,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       wallets,
+      pagination: {
+        offset,
+        limit,
+        total: trendingAddresses.length,
+        hasMore: offset + limit < trendingAddresses.length
+      }
     });
   } catch (error) {
     console.error('Trending API error:', error);

@@ -8,9 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "db:setup": "node scripts/setup-db.js",
-    "db:seed": "npx prisma db seed",
-    "db:migrate": "npx prisma migrate dev",
-    "db:generate": "npx prisma generate"
+    "db:seed": "pnpm prisma db seed",
+    "db:migrate": "pnpm prisma migrate dev",
+    "db:generate": "pnpm prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
@@ -19,6 +19,7 @@
     "axios": "^1.12.2",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.24",
+    "html2canvas": "^1.4.1",
     "lucide-react": "^0.548.0",
     "next": "16.0.0",
     "prisma": "^6.18.0",

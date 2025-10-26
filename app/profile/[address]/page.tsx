@@ -5,6 +5,9 @@ import { ProfileCard } from '../../../src/components/ProfileCard';
 import { TransactionFeed } from '../../../src/components/TransactionFeed';
 import { PerformanceChart } from '../../../src/components/PerformanceChart';
 import { WalletStats } from '../../../src/components/WalletStats';
+import { ShareableProfileCard } from '../../../src/components/ShareableProfileCard';
+import { NFTCollection } from '../../../src/components/NFTCollection';
+import { PageLoading } from '../../../src/components/Loading';
 import { useWalletData } from '../../../src/hooks/useWalletData';
 import { useConnectedWallet } from '../../../src/store/useStore';
 import { useRouter } from 'next/navigation';
@@ -26,28 +29,7 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
   const isCurrentUser = connectedWallet?.toLowerCase() === address?.toLowerCase();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <main className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="animate-pulse">
-              <div className="h-8 bg-surface rounded w-1/3 mb-8"></div>
-              <div className="grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-6">
-                  <div className="h-64 bg-surface rounded-xl"></div>
-                  <div className="h-32 bg-surface rounded-xl"></div>
-                </div>
-                <div className="space-y-6">
-                  <div className="h-48 bg-surface rounded-xl"></div>
-                  <div className="h-32 bg-surface rounded-xl"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
+    return <PageLoading message="Loading wallet profile..." />;
   }
 
   if (error) {
@@ -122,12 +104,11 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
               {/* Performance Chart */}
               <div className="bg-surface border border-border rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-text-primary mb-4">Portfolio Performance</h3>
-                {portfolio?.data && portfolio.data.chart_data && portfolio.data.chart_data.length > 0 ? (
-                  <PerformanceChart data={portfolio.data.chart_data} height={300} />
-                ) : (
+                       {portfolio?.data && portfolio.data.chart_data && portfolio.data.chart_data.length > 0 ? (
+                         <PerformanceChart data={portfolio.data.chart_data} height={300} isLoading={portfolio.isLoading} />
+                       ) : (
                   <div className="flex items-center justify-center bg-background/50 rounded-lg h-[300px]">
                     <div className="text-center">
-                      <div className="text-4xl mb-2">📊</div>
                       <div className="text-text-secondary">Chart data will be available soon</div>
                       <div className="text-text-secondary text-sm mt-1">Portfolio tracking in development</div>
                     </div>
@@ -142,35 +123,30 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
                   <TransactionFeed
                     transactions={transactions.data?.pages?.flatMap(page => page.data) || []}
                     isLoading={transactions.isLoading}
-                    isFetchingNextPage={transactions.isFetchingNextPage}
-                    hasNextPage={transactions.hasNextPage}
+                    hasMore={transactions.hasNextPage}
                     onLoadMore={transactions.fetchNextPage}
                   />
                 </div>
               )}
+
+              {/* NFT Collection */}
+              <NFTCollection walletAddress={address} />
             </div>
 
             {/* Sidebar */}
             <div className="space-y-8">
               {/* Wallet Stats */}
-              {stats?.data && (
-                <WalletStats stats={stats.data} />
-              )}
+                     {stats?.data && (
+                       <WalletStats stats={stats.data} isLoading={stats.isLoading} />
+                     )}
 
-              {/* Quick Actions */}
-              <div className="bg-surface border border-border rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Quick Actions</h3>
-                <div className="space-y-3">
-                  <button className="w-full bg-accent text-white px-4 py-2 rounded-lg font-medium hover:bg-accent/90 transition-colors">
-                    Share Profile
-                  </button>
-                  {!isCurrentUser && (
-                    <button className="w-full border border-border text-text-primary px-4 py-2 rounded-lg font-medium hover:bg-surface transition-colors">
-                      Follow Wallet
-                    </button>
-                  )}
-                </div>
-              </div>
+              {/* Shareable Profile Card */}
+              {stats?.data && (
+                <ShareableProfileCard 
+                  wallet={{ address, ensName: undefined }} 
+                  stats={stats.data} 
+                />
+              )}
 
               {/* Trading Tips */}
               <div className="bg-surface border border-border rounded-xl p-6">

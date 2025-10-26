@@ -4,15 +4,33 @@ import { PerformanceChartProps } from '../types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '../lib/analysis';
 import { format } from 'date-fns';
+import { BarChart3, Loader2 } from 'lucide-react';
 
-export function PerformanceChart({ data, height = 200, showTooltip = true }: PerformanceChartProps) {
+export function PerformanceChart({ data, height = 200, showTooltip = true, isLoading = false }: PerformanceChartProps & { isLoading?: boolean }) {
+  if (isLoading) {
+    return (
+      <div 
+        className="flex items-center justify-center bg-background/50 rounded-lg animate-pulse"
+        style={{ height }}
+      >
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-2 animate-spin" />
+          <div className="text-text-secondary text-sm">Loading chart...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!data || data.length === 0) {
     return (
       <div 
         className="flex items-center justify-center bg-background/50 rounded-lg"
         style={{ height }}
       >
-        <div className="text-text-secondary text-sm">No chart data available</div>
+        <div className="text-center">
+          <BarChart3 className="w-12 h-12 mb-2 text-text-secondary mx-auto" />
+          <div className="text-text-secondary text-sm">No chart data available</div>
+        </div>
       </div>
     );
   }

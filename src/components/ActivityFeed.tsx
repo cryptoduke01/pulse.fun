@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
+import { Users, UserMinus, DollarSign, BarChart3, Zap, FileText, ExternalLink } from 'lucide-react';
 
 interface Activity {
   id: string;
@@ -53,17 +54,19 @@ export function ActivityFeed({ walletAddress, limit = 50 }: ActivityFeedProps) {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'follow':
-        return '👥';
+        return <Users className="w-4 h-4" />;
       case 'unfollow':
-        return '👋';
+        return <UserMinus className="w-4 h-4" />;
       case 'transaction_created':
-        return '💸';
+        return <DollarSign className="w-4 h-4" />;
       case 'portfolio_updated':
-        return '📊';
+        return <BarChart3 className="w-4 h-4" />;
       case 'activity_detected':
-        return '⚡';
+        return <Zap className="w-4 h-4" />;
+      case 'transaction':
+        return <DollarSign className="w-4 h-4" />;
       default:
-        return '📋';
+        return <FileText className="w-4 h-4" />;
     }
   };
 
