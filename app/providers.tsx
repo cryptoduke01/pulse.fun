@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { mainnet, polygon, base, arbitrum, optimism } from 'wagmi/chains';
-import { createConfig, http } from 'wagmi';
+// import { createConfig, http } from 'wagmi';
 import { useState, useEffect } from 'react';
 import '@rainbow-me/rainbowkit/styles.css';
 
@@ -14,10 +14,6 @@ const config = getDefaultConfig({
   projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '37964f97ec5121be8a5d4128583dc238',
   chains: [mainnet, polygon, base, arbitrum, optimism],
   ssr: false,
-  appInfo: {
-    appName: 'pulse.fun',
-    learnMoreUrl: 'https://pulse.fun',
-  },
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
