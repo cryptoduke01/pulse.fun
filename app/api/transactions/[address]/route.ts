@@ -5,7 +5,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ address: string }> }
 ) {
-  let address: string;
+  let address: string = 'unknown';
   
   try {
     const resolvedParams = await params;
@@ -41,7 +41,7 @@ export async function GET(
       error: error,
       message: error.message,
       code: error.code,
-      address: address || 'unknown',
+      address: address,
       stack: error.stack
     });
     
