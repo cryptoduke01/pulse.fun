@@ -84,7 +84,7 @@ export class DatabaseService {
       },
     });
 
-    return user?.following.map(follow => follow.following.walletAddress) || [];
+    return user?.following.map((follow: { following: { walletAddress: string } }) => follow.following.walletAddress) || [];
   }
 
   static async getFollowers(walletAddress: string) {
@@ -99,7 +99,7 @@ export class DatabaseService {
       },
     });
 
-    return user?.followers.map(follow => follow.follower.walletAddress) || [];
+    return user?.followers.map((follow: { follower: { walletAddress: string } }) => follow.follower.walletAddress) || [];
   }
 
   static async isFollowing(followerAddress: string, followingAddress: string) {
