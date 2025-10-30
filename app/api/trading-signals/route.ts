@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 interface TradingSignal {
   id: string;
   walletAddress: string;
-  walletName: string;
+  walletName: string | null;
   action: 'buy' | 'sell' | 'swap';
   token: string;
   amount: string;
