@@ -3,6 +3,7 @@ import { Inter, Poppins, Fira_Code } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -57,6 +58,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <Providers>
             {children}
+            <Analytics />
           </Providers>
         </ErrorBoundary>
       </body>

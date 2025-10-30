@@ -8,16 +8,20 @@ import { WalletStats } from '../../../src/components/WalletStats';
 import { ShareableProfileCard } from '../../../src/components/ShareableProfileCard';
 import { NFTCollection } from '../../../src/components/NFTCollection';
 import { PageLoading } from '../../../src/components/Loading';
+import { RecommendationsModal } from '../../../src/components/RecommendationsModal';
+import { useState as useReactState } from 'react';
 import { useWalletData } from '../../../src/hooks/useWalletData';
 import { useConnectedWallet } from '../../../src/store/useStore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import React from 'react';
+import { AlertTriangle, ArrowLeft } from 'lucide-react';
 
 export default function ProfilePage({ params }: { params: Promise<{ address: string }> }) {
   const [address, setAddress] = useState<string>('');
   const connectedWallet = useConnectedWallet();
   const router = useRouter();
+  const [openGuide, setOpenGuide] = useReactState(false);
 
   useEffect(() => {
     params.then(({ address }) => {
@@ -39,7 +43,9 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
         <main className="pt-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">⚠️</div>
+              <div className="mb-4 flex justify-center">
+                <AlertTriangle className="w-12 h-12 text-yellow-400" />
+              </div>
               <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Profile</h2>
               <p className="text-text-secondary mb-8">
                 Unable to load wallet data. The address might be invalid or the wallet might not exist.
@@ -67,9 +73,10 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
             <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={() => router.back()}
-                className="text-text-secondary hover:text-text-primary transition-colors"
+                className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
               >
-                ← Back
+                <ArrowLeft className="w-4 h-4" />
+                Back
               </button>
               <h1 className="text-3xl font-bold text-text-primary">
                 {isCurrentUser ? 'Your Profile' : 'Wallet Profile'}
@@ -83,9 +90,9 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-6">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6">
               {/* Profile Card */}
               {stats?.data && (
                 <ProfileCard
@@ -102,7 +109,7 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
               )}
 
               {/* Performance Chart */}
-              <div className="bg-surface border border-border rounded-xl p-6">
+              <div className="bg-surface border border-border rounded-xl p-4">
                 <h3 className="text-lg font-semibold text-text-primary mb-4">Portfolio Performance</h3>
                        {portfolio?.data && portfolio.data.chart_data && portfolio.data.chart_data.length > 0 ? (
                          <PerformanceChart data={portfolio.data.chart_data} height={300} isLoading={portfolio.isLoading} />
@@ -118,13 +125,14 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
 
               {/* Transaction Feed */}
               {transactions && (
-                <div className="bg-surface border border-border rounded-xl p-6">
+                <div className="bg-surface border border-border rounded-xl p-4">
                   <h3 className="text-lg font-semibold text-text-primary mb-4">Recent Transactions</h3>
                   <TransactionFeed
                     transactions={transactions.data?.pages?.flatMap(page => page.data) || []}
                     isLoading={transactions.isLoading}
                     hasMore={transactions.hasNextPage}
                     onLoadMore={transactions.fetchNextPage}
+                    maxInitial={5}
                   />
                 </div>
               )}
@@ -134,7 +142,7 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-8">
+            <div className="space-y-6">
               {/* Wallet Stats */}
                      {stats?.data && (
                        <WalletStats stats={stats.data} isLoading={stats.isLoading} />
@@ -148,19 +156,18 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
                 />
               )}
 
-              {/* Trading Tips */}
-              <div className="bg-surface border border-border rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Trading Tips</h3>
-                <ul className="space-y-2 text-sm text-text-secondary">
-                  <li>• Diversify your portfolio across different assets</li>
-                  <li>• Set stop-losses to manage risk</li>
-                  <li>• Keep track of your trading performance</li>
-                </ul>
+              {/* Trading Guide trigger */}
+              <div className="bg-surface border border-border rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">Trading Guide</h3>
+                <button onClick={() => setOpenGuide(true)} className="bg-accent/10 text-accent hover:bg-accent/20 px-4 py-2 rounded-lg font-medium">
+                  Open recommendations
+                </button>
               </div>
             </div>
           </div>
         </div>
       </main>
+      <RecommendationsModal open={openGuide} onClose={() => setOpenGuide(false)} />
     </div>
   );
 }

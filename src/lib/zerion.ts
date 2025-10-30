@@ -35,17 +35,29 @@ export class ZerionAPI {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        // Try to extract useful body even if it's not JSON
+        let errorData: any = {};
+        let errorText: string | undefined;
+        try {
+          errorData = await response.clone().json();
+        } catch (_) {
+          try {
+            errorText = await response.text();
+          } catch (_) {
+            // ignore
+          }
+        }
         console.error('Zerion API Error:', {
           status: response.status,
           statusText: response.statusText,
           errorData,
+          errorText,
           url: endpoint
         });
         throw new ApiError({
-          message: errorData.error || `HTTP ${response.status}: ${response.statusText}`,
+          message: (errorData && (errorData.error || errorData.message)) || errorText || `HTTP ${response.status}: ${response.statusText}`,
           code: response.status.toString(),
-          details: errorData,
+          details: errorData || errorText,
         });
       }
 
@@ -85,7 +97,7 @@ export class ZerionAPI {
     address: string, 
     period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d'
   ): Promise<{ data: { attributes: { points: ChartDataPoint[] } } }> {
-    return await this.makeRequest<{ data: { attributes: { points: ChartDataPoint[] } } }>(`/portfolio/${address}`, { period });
+    return await this.makeRequest<{ data: { attributes: { points: ChartDataPoint[] } } }>(`/chart/${address}`, { period });
   }
 
   async getAsset(fungibleId: string): Promise<Asset> {

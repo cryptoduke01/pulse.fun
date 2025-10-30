@@ -4,8 +4,22 @@ import Link from 'next/link';
 import { Navigation } from '../src/components/Navigation';
 import { WalletConnect } from '../src/components/WalletConnect';
 import { motion } from 'framer-motion';
+import { Zap, LineChart, Globe2, Gem, Sprout, Images, BarChart3, ArrowLeftRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { OnboardingModal } from '../src/components/OnboardingModal';
 
 export default function Home() {
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem('pf_onboarding_seen');
+      if (!seen) {
+        setShowOnboarding(true);
+        localStorage.setItem('pf_onboarding_seen', '1');
+      }
+    } catch (_) {}
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,10 +82,10 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-surface border border-border rounded-xl p-8 hover:border-accent/50 transition-all duration-200 hover:scale-105">
                 <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center mb-6">
-                  <span className="text-2xl">⚡</span>
+                  <Zap className="w-6 h-6 text-accent" />
                 </div>
                 <h3 className="text-xl font-semibold text-text-primary mb-4">
                   Connect Your Wallet
@@ -83,7 +97,7 @@ export default function Home() {
 
               <div className="bg-surface border border-border rounded-xl p-8 hover:border-accent/50 transition-all duration-200 hover:scale-105">
                 <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center mb-6">
-                  <span className="text-2xl">📈</span>
+                  <LineChart className="w-6 h-6 text-accent" />
                 </div>
                 <h3 className="text-xl font-semibold text-text-primary mb-4">
                   Auto-Generated Profile
@@ -95,7 +109,7 @@ export default function Home() {
 
               <div className="bg-surface border border-border rounded-xl p-8 hover:border-accent/50 transition-all duration-200 hover:scale-105">
                 <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center mb-6">
-                  <span className="text-2xl">🌐</span>
+                  <Globe2 className="w-6 h-6 text-accent" />
                 </div>
                 <h3 className="text-xl font-semibold text-text-primary mb-4">
                   Follow & Discover
@@ -122,17 +136,17 @@ export default function Home() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { emoji: '⚡', name: 'Degen', desc: 'High frequency, high risk trading' },
-                { emoji: '💎', name: 'Diamond Hands', desc: 'Long-term holding strategy' },
-                { emoji: '🌾', name: 'Yield Farmer', desc: 'Optimizing for passive income' },
-                { emoji: '🎨', name: 'NFT Collector', desc: 'Curating digital art and assets' },
-                { emoji: '📈', name: 'Day Trader', desc: 'Active daily trading strategies' },
-                { emoji: '🔄', name: 'Arbitrageur', desc: 'Capitalizing on price differences' },
-              ].map((style, index) => (
+                { Icon: Zap, name: 'Degen', desc: 'High frequency, high risk trading' },
+                { Icon: Gem, name: 'Diamond Hands', desc: 'Long-term holding strategy' },
+                { Icon: Sprout, name: 'Yield Farmer', desc: 'Optimizing for passive income' },
+                { Icon: Images, name: 'NFT Collector', desc: 'Curating digital art and assets' },
+                { Icon: BarChart3, name: 'Day Trader', desc: 'Active daily trading strategies' },
+                { Icon: ArrowLeftRight, name: 'Arbitrageur', desc: 'Capitalizing on price differences' },
+              ].map(({ Icon, name, desc }, index) => (
                 <div key={index} className="bg-background border border-border rounded-lg p-6 hover:border-accent/50 transition-all duration-200">
-                  <div className="text-3xl mb-3">{style.emoji}</div>
-                  <h3 className="text-lg font-semibold text-text-primary mb-2">{style.name}</h3>
-                  <p className="text-text-secondary text-sm">{style.desc}</p>
+                  <Icon className="w-6 h-6 text-accent mb-3" />
+                  <h3 className="text-lg font-semibold text-text-primary mb-2">{name}</h3>
+                  <p className="text-text-secondary text-sm">{desc}</p>
                 </div>
               ))}
             </div>
@@ -170,13 +184,21 @@ export default function Home() {
                 </div>
                 <span className="text-xl font-bold text-text-primary">pulse.fun</span>
               </div>
-              <div className="text-text-secondary text-sm">
-                Built for Cypherpunk Hackathon • Powered by Zerion API
+              <div className="text-text-secondary text-sm flex flex-col md:flex-row items-center gap-2">
+                <span>Built for Cypherpunk Hackathon • Powered by Zerion API</span>
+                <span className="hidden md:inline">•</span>
+                <div className="flex items-center gap-3">
+                  <a href="https://github.com/cryptoduke01/pulse.fun" target="_blank" rel="noopener noreferrer" className="hover:text-text-primary">GitHub</a>
+                  <a href="https://x.com/pulsedotfun" target="_blank" rel="noopener noreferrer" className="hover:text-text-primary">X: @pulsedotfun</a>
+                  <a href="https://x.com/cryptoduke01" target="_blank" rel="noopener noreferrer" className="hover:text-text-primary">X: @cryptoduke01</a>
+                  <a href="https://x.com/zerion" target="_blank" rel="noopener noreferrer" className="hover:text-text-primary">X: @zerion</a>
+                </div>
               </div>
             </div>
         </div>
         </footer>
       </main>
+      <OnboardingModal open={showOnboarding} onClose={() => setShowOnboarding(false)} />
     </div>
   );
 }

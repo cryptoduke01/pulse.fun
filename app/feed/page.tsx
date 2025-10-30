@@ -11,12 +11,15 @@ import { PageLoading } from '../../src/components/Loading';
 import { useWalletData } from '../../src/hooks/useWalletData';
 import { useConnectedWallet, useFollowing } from '../../src/store/useStore';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState as useReactState } from 'react';
+import { AlertTriangle, Users, Search } from 'lucide-react';
+import { RecommendationsModal } from '../../src/components/RecommendationsModal';
 
 export default function FeedPage() {
   const connectedWallet = useConnectedWallet();
   const following = useFollowing();
   const router = useRouter();
+  const [openGuide, setOpenGuide] = useReactState(false);
 
   useEffect(() => {
     if (!connectedWallet) {
@@ -50,7 +53,9 @@ export default function FeedPage() {
         <main className="pt-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">⚠️</div>
+              <div className="mb-4 flex justify-center">
+                <AlertTriangle className="w-12 h-12 text-yellow-400" />
+              </div>
               <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Data</h2>
               <p className="text-text-secondary mb-8">
                 API request failed. This is expected until we set up live data integration.
@@ -81,33 +86,19 @@ export default function FeedPage() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-6">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Your Profile Card */}
-              {stats?.data && (
-                <ProfileCard
-                  wallet={{
-                    id: connectedWallet,
-                    address: connectedWallet,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                  }}
-                  stats={stats.data}
-                  showActions={false}
-                  isCurrentUser={true}
-                />
-              )}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Profile card removed on feed to keep it concise */}
 
-              {/* Performance Chart */}
-              <div className="bg-surface border border-border rounded-xl p-6">
+              {/* Performance Chart (compact) */}
+              <div className="bg-surface border border-border rounded-xl p-4">
                 <h3 className="text-lg font-semibold text-text-primary mb-4">Portfolio Performance</h3>
                        {portfolio?.data && portfolio.data.chart_data && portfolio.data.chart_data.length > 0 ? (
-                         <PerformanceChart data={portfolio.data.chart_data} height={300} isLoading={portfolio.isLoading} />
+                         <PerformanceChart data={portfolio.data.chart_data} height={180} isLoading={portfolio.isLoading} />
                        ) : (
-                  <div className="flex items-center justify-center bg-background/50 rounded-lg h-[300px]">
+                  <div className="flex items-center justify-center bg-background/50 rounded-lg h-[180px]">
                     <div className="text-center">
-                      <div className="text-4xl mb-2">📊</div>
                       <div className="text-text-secondary">Chart data will be available soon</div>
                       <div className="text-text-secondary text-sm mt-1">Portfolio tracking in development</div>
                     </div>
@@ -116,27 +107,25 @@ export default function FeedPage() {
               </div>
 
               {/* Activity Feed */}
-              <div className="bg-surface border border-border rounded-xl p-6">
+              <div className="bg-surface border border-border rounded-xl p-4">
                 <h3 className="text-lg font-semibold text-text-primary mb-4">Live Activity</h3>
                 <ActivityFeed walletAddress={connectedWallet} />
               </div>
 
               {/* Following Section */}
               {following.length > 0 ? (
-                <div className="bg-surface border border-border rounded-xl p-6">
+                <div className="bg-surface border border-border rounded-xl p-4">
                   <h3 className="text-lg font-semibold text-text-primary mb-4">Following Activity</h3>
                   <div className="text-center py-8">
-                    <div className="text-4xl mb-4">👥</div>
                     <p className="text-text-secondary">
                       Activity from wallets you follow will appear here
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="bg-surface border border-border rounded-xl p-6">
+                <div className="bg-surface border border-border rounded-xl p-4">
                   <h3 className="text-lg font-semibold text-text-primary mb-4">Start Following</h3>
                   <div className="text-center py-8">
-                    <div className="text-4xl mb-4">🔍</div>
                     <p className="text-text-secondary mb-4">
                       Discover and follow interesting wallets to see their activity here
                     </p>
@@ -162,11 +151,10 @@ export default function FeedPage() {
                        )}
 
               {/* Following List */}
-              <div className="bg-surface border border-border rounded-xl p-6">
+              <div className="bg-surface border border-border rounded-xl p-4">
                 <h3 className="text-lg font-semibold text-text-primary mb-4">Following</h3>
                 {following.length === 0 ? (
                   <div className="text-center py-4">
-                    <div className="text-4xl mb-2">👥</div>
                     <p className="text-text-secondary text-sm mb-3">
                       You're not following any wallets yet
                     </p>
@@ -174,7 +162,7 @@ export default function FeedPage() {
                       href="/discover"
                       className="text-accent hover:text-accent/80 text-sm font-medium transition-colors"
                     >
-                      Discover wallets to follow →
+                      Discover wallets to follow &rarr;
                     </a>
                   </div>
                 ) : (
@@ -200,7 +188,7 @@ export default function FeedPage() {
               </div>
 
               {/* Quick Actions */}
-              <div className="bg-surface border border-border rounded-xl p-6">
+              <div className="bg-surface border border-border rounded-xl p-4">
                 <h3 className="text-lg font-semibold text-text-primary mb-4">Quick Actions</h3>
                 <div className="space-y-3">
                   <a
@@ -219,27 +207,17 @@ export default function FeedPage() {
               </div>
 
               {/* Trading Tips */}
-              <div className="bg-surface border border-border rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Trading Tips</h3>
-                <div className="space-y-3 text-sm text-text-secondary">
-                  <div className="flex items-start gap-3">
-                    <span className="text-accent">💡</span>
-                    <span>Diversify your portfolio across different asset types</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-accent">📊</span>
-                    <span>Track your performance metrics regularly</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-accent">🔍</span>
-                    <span>Follow successful traders to learn new strategies</span>
-                  </div>
-                </div>
+              <div className="bg-surface border border-border rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">Trading Guide</h3>
+                <button onClick={() => setOpenGuide(true)} className="bg-accent/10 text-accent hover:bg-accent/20 px-4 py-2 rounded-lg font-medium w-full">
+                  Open recommendations
+                </button>
               </div>
             </div>
           </div>
         </div>
       </main>
+      <RecommendationsModal open={openGuide} onClose={() => setOpenGuide(false)} />
     </div>
   );
 }

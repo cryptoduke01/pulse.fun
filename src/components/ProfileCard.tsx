@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Copy, Check, User, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
 
 export function ProfileCard({ 
   wallet, 
@@ -22,6 +23,7 @@ export function ProfileCard({
   const isCurrentlyFollowing = checkIsFollowing(wallet.address);
   const [copied, setCopied] = useState(false);
   const router = useRouter();
+  const toast = useToast();
 
   const handleProfileClick = () => {
     router.push(`/profile/${wallet.address}`);
@@ -31,11 +33,14 @@ export function ProfileCard({
     try {
       if (isCurrentlyFollowing) {
         await unfollowWallet(wallet.address);
+        toast.info('Unfollowed', `${wallet.address.slice(0,6)}…${wallet.address.slice(-4)} removed from following`);
       } else {
         await followWallet(wallet.address);
+        toast.success('Following', `${wallet.address.slice(0,6)}…${wallet.address.slice(-4)} added to following`);
       }
     } catch (error) {
       console.error('Failed to toggle follow:', error);
+      toast.error('Action failed', 'Could not update following');
     }
   };
 
@@ -45,9 +50,11 @@ export function ProfileCard({
     try {
       await navigator.clipboard.writeText(wallet.address);
       setCopied(true);
+      toast.success('Address copied');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy address:', error);
+      toast.error('Copy failed');
     }
   };
 
@@ -159,12 +166,18 @@ export function ProfileCard({
           whileHover={{ scale: 1.02 }}
           className="glass rounded-lg p-2 lg:p-3"
         >
-          <div className="text-text-secondary text-caption font-medium">Total Trades</div>
+          <div className="text-text-secondary text-caption font-medium">
+            {stats.total_trades === null || stats.total_trades === undefined ? '24h Change' : 'Total Trades'}
+          </div>
           <div className="text-text-primary text-subtitle font-heading font-semibold">
-            {stats.total_trades.toLocaleString()}
+            {stats.total_trades === null || stats.total_trades === undefined
+              ? formatPercentage(stats.value_change_24h)
+              : stats.total_trades.toLocaleString()}
           </div>
           <div className="text-text-secondary text-body-sm">
-            {stats.active_days} active days
+            {stats.total_trades === null || stats.total_trades === undefined
+              ? 'based on portfolio'
+              : `${stats.active_days} active days`}
           </div>
         </motion.div>
       </div>

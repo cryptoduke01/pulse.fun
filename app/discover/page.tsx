@@ -7,141 +7,8 @@ import { useConnectedWallet, useFollowing } from '../../src/store/useStore';
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-// Using text icons instead of lucide-react
 
-// Enhanced mock data for trending wallets
-const mockWallets = [
-  {
-    id: '1',
-    address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-    ensName: 'vitalik.eth',
-    total_value: 1250000,
-    value_change_24h: 5.2,
-    total_trades: 1247,
-    active_days: 89,
-    trading_style: {
-      type: 'degen' as const,
-      score: 87,
-      confidence: 92,
-      traits: ['High frequency trading', 'Short-term holds', 'High risk tolerance'],
-    },
-    performance: {
-      total_trades: 1247,
-      win_rate: 68.5,
-      average_hold_time: 2.3,
-      profit_factor: 1.8,
-      sharpe_ratio: 1.2,
-      max_drawdown: -15.2,
-      best_trade: 12000,
-      worst_trade: -5000,
-      risk_score: 75,
-    },
-  },
-  {
-    id: '2',
-    address: '0x1234567890123456789012345678901234567890',
-    ensName: 'cryptowhale.eth',
-    total_value: 2500000,
-    value_change_24h: -2.1,
-    total_trades: 89,
-    active_days: 156,
-    trading_style: {
-      type: 'holder' as const,
-      score: 95,
-      confidence: 88,
-      traits: ['Long-term holding', 'Conservative approach', 'Diamond hands'],
-    },
-    performance: {
-      total_trades: 89,
-      win_rate: 82.1,
-      average_hold_time: 45.2,
-      profit_factor: 2.3,
-      sharpe_ratio: 1.8,
-      max_drawdown: -8.5,
-      best_trade: 50000,
-      worst_trade: -1000,
-      risk_score: 25,
-    },
-  },
-  {
-    id: '3',
-    address: '0xabcdef1234567890abcdef1234567890abcdef12',
-    ensName: 'defi_master.eth',
-    total_value: 850000,
-    value_change_24h: 12.8,
-    total_trades: 456,
-    active_days: 67,
-    trading_style: {
-      type: 'yield_farmer' as const,
-      score: 78,
-      confidence: 85,
-      traits: ['Yield farming', 'DeFi protocols', 'Risk management'],
-    },
-    performance: {
-      total_trades: 456,
-      win_rate: 74.2,
-      average_hold_time: 8.7,
-      profit_factor: 1.6,
-      sharpe_ratio: 1.4,
-      max_drawdown: -12.3,
-      best_trade: 15000,
-      worst_trade: -2000,
-      risk_score: 45,
-    },
-  },
-  {
-    id: '4',
-    address: '0x9876543210987654321098765432109876543210',
-    ensName: 'nft_collector.eth',
-    total_value: 420000,
-    value_change_24h: 3.4,
-    total_trades: 234,
-    active_days: 45,
-    trading_style: {
-      type: 'nft_collector' as const,
-      score: 65,
-      confidence: 72,
-      traits: ['NFT trading', 'Art collection', 'Cultural investing'],
-    },
-    performance: {
-      total_trades: 234,
-      win_rate: 58.9,
-      average_hold_time: 15.3,
-      profit_factor: 1.2,
-      sharpe_ratio: 0.8,
-      max_drawdown: -25.1,
-      best_trade: 8000,
-      worst_trade: -3000,
-      risk_score: 60,
-    },
-  },
-  {
-    id: '5',
-    address: '0x5555555555555555555555555555555555555555',
-    ensName: 'day_trader.eth',
-    total_value: 180000,
-    value_change_24h: 8.7,
-    total_trades: 2100,
-    active_days: 120,
-    trading_style: {
-      type: 'day_trader' as const,
-      score: 92,
-      confidence: 95,
-      traits: ['Day trading', 'Technical analysis', 'Quick decisions'],
-    },
-    performance: {
-      total_trades: 2100,
-      win_rate: 55.2,
-      average_hold_time: 0.8,
-      profit_factor: 1.1,
-      sharpe_ratio: 0.9,
-      max_drawdown: -18.7,
-      best_trade: 7000,
-      worst_trade: -4000,
-      risk_score: 85,
-    },
-  },
-];
+// Removed mock wallets. Live data is fetched from /api/trending
 
 type FilterType = 'all' | 'degen' | 'holder' | 'yield farmer' | 'nft collector' | 'day trader';
 type SortType = 'trending' | 'value' | 'trades' | 'performance';
@@ -288,7 +155,7 @@ export default function DiscoverPage() {
     }
 
     return filtered;
-  }, [searchQuery, selectedFilter, sortBy, realWallets]);
+  }, [searchQuery, selectedFilter, sortBy, realWallets, trendingWallets]);
 
   // Handle search with real data fetch
   const handleSearch = (query: string) => {
@@ -301,12 +168,12 @@ export default function DiscoverPage() {
   };
 
   const tradingStyleFilters = [
-    { value: 'all', label: 'All Styles', icon: '👥' },
-    { value: 'degen', label: 'Degen', icon: '⚡' },
-    { value: 'holder', label: 'Holder', icon: '💎' },
-    { value: 'yield farmer', label: 'Yield Farmer', icon: '🌾' },
-    { value: 'nft collector', label: 'NFT Collector', icon: '🖼️' },
-    { value: 'day trader', label: 'Day Trader', icon: '📈' },
+    { value: 'all', label: 'All Styles', icon: 'users' },
+    { value: 'degen', label: 'Degen', icon: 'zap' },
+    { value: 'holder', label: 'Holder', icon: 'diamond' },
+    { value: 'yield farmer', label: 'Yield Farmer', icon: 'sprout' },
+    { value: 'nft collector', label: 'NFT Collector', icon: 'image' },
+    { value: 'day trader', label: 'Day Trader', icon: 'line-chart' },
   ];
 
   const sortOptions = [
@@ -338,15 +205,14 @@ export default function DiscoverPage() {
           <div className="bg-surface border border-border rounded-xl p-6 mb-8">
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search Bar */}
-              <div className="flex-1 relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary text-lg">🔍</span>
-                       <input
-                         type="text"
-                         placeholder="Search by address or ENS name..."
-                         value={searchQuery}
-                         onChange={(e) => handleSearch(e.target.value)}
-                         className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-                       />
+              <div className="flex-1">
+                <input
+                  type="text"
+                  aria-label="Search by address or ENS"
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
+                />
               </div>
 
               {/* Filter Toggle */}
@@ -354,7 +220,7 @@ export default function DiscoverPage() {
                 onClick={() => setShowFilters(!showFilters)}
                 className="flex items-center gap-2 px-4 py-3 bg-background border border-border rounded-lg text-text-primary hover:border-accent/50 transition-colors"
               >
-                <span className="text-lg">🔧</span>
+              <span className="text-lg"> </span>
                 Filters
               </button>
 
@@ -500,7 +366,7 @@ export default function DiscoverPage() {
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-text-primary mb-6">Trending This Week</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {mockWallets.slice(0, 3).map((wallet, index) => (
+              {(trendingWallets || []).slice(0, 3).map((wallet, index) => (
                 <motion.div
                   key={`trending-${wallet.id}`}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -525,7 +391,7 @@ export default function DiscoverPage() {
                     <div className="flex justify-between">
                       <span className="text-text-secondary">Portfolio Value</span>
                       <span className="text-text-primary font-medium">
-                        ${(wallet.total_value / 1000000).toFixed(1)}M
+                        {(wallet.total_value ?? 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
                       </span>
                     </div>
                     <div className="flex justify-between">

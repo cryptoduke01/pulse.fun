@@ -2,7 +2,8 @@
 
 import { WalletStatsProps } from '../types';
 import { formatCurrency, formatPercentage, formatNumber } from '../lib/analysis';
-import { getTradingStyleEmoji, getTradingStyleColor } from '../lib/analysis';
+import { getTradingStyleColor } from '../lib/analysis';
+import { Wallet as WalletIcon, LineChart, Repeat, Calendar, Target, Timer, AlertTriangle, BarChart3 } from 'lucide-react';
 
 export function WalletStats({ stats, isLoading = false }: WalletStatsProps) {
   if (isLoading) {
@@ -23,49 +24,49 @@ export function WalletStats({ stats, isLoading = false }: WalletStatsProps) {
       label: 'Portfolio Value',
       value: formatCurrency(stats.total_value),
       change: stats.value_change_24h,
-      icon: '💰',
+      Icon: WalletIcon,
     },
     {
       label: '24h Change',
       value: formatPercentage(stats.value_change_24h),
       change: stats.value_change_24h,
-      icon: '📈',
+      Icon: LineChart,
     },
     {
       label: 'Total Trades',
       value: formatNumber(stats.total_trades),
       change: null,
-      icon: '🔄',
+      Icon: Repeat,
     },
     {
       label: 'Active Days',
       value: stats.active_days.toString(),
       change: null,
-      icon: '📅',
+      Icon: Calendar,
     },
     {
       label: 'Win Rate',
       value: `${stats.performance.win_rate.toFixed(1)}%`,
       change: stats.performance.win_rate - 50, // vs 50% baseline
-      icon: '🎯',
+      Icon: Target,
     },
     {
       label: 'Avg Hold Time',
       value: `${stats.performance.average_hold_time.toFixed(1)}d`,
       change: null,
-      icon: '⏱️',
+      Icon: Timer,
     },
     {
       label: 'Risk Score',
       value: `${stats.performance.risk_score}/100`,
       change: null,
-      icon: '⚠️',
+      Icon: AlertTriangle,
     },
     {
       label: 'Profit Factor',
       value: stats.performance.profit_factor.toFixed(2),
       change: stats.performance.profit_factor - 1, // vs 1.0 baseline
-      icon: '📊',
+      Icon: BarChart3,
     },
   ];
 
@@ -74,7 +75,7 @@ export function WalletStats({ stats, isLoading = false }: WalletStatsProps) {
       {/* Trading Style Badge */}
       <div className="bg-surface border border-border rounded-lg p-4">
         <div className="flex items-center gap-3 mb-3">
-          <span className="text-2xl">{getTradingStyleEmoji(stats.trading_style.type)}</span>
+          <BarChart3 className="w-5 h-5 text-accent" />
           <div>
             <div className="text-text-primary font-semibold capitalize">
               {stats.trading_style.type.replace('_', ' ')} Trader
@@ -113,7 +114,7 @@ export function WalletStats({ stats, isLoading = false }: WalletStatsProps) {
         {statCards.map((stat, index) => (
           <div key={index} className="bg-surface border border-border rounded-lg p-4 hover:border-accent/50 transition-all duration-200">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">{stat.icon}</span>
+              <stat.Icon className="w-4 h-4 text-text-secondary" />
               <span className="text-text-secondary text-sm font-medium">{stat.label}</span>
             </div>
             <div className="text-text-primary text-xl font-semibold mb-2 break-all">

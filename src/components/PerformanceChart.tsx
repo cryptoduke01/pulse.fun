@@ -7,11 +7,15 @@ import { format } from 'date-fns';
 import { BarChart3, Loader2 } from 'lucide-react';
 
 export function PerformanceChart({ data, height = 200, showTooltip = true, isLoading = false }: PerformanceChartProps & { isLoading?: boolean }) {
+  // Reduce chart height on small screens to avoid obstructing other content
+  const computedHeight = (typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches)
+    ? Math.min(height, 180)
+    : height;
   if (isLoading) {
     return (
       <div 
         className="flex items-center justify-center bg-background/50 rounded-lg animate-pulse"
-        style={{ height }}
+        style={{ height: computedHeight }}
       >
         <div className="text-center">
           <Loader2 className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-2 animate-spin" />
@@ -25,7 +29,7 @@ export function PerformanceChart({ data, height = 200, showTooltip = true, isLoa
     return (
       <div 
         className="flex items-center justify-center bg-background/50 rounded-lg"
-        style={{ height }}
+        style={{ height: computedHeight }}
       >
         <div className="text-center">
           <BarChart3 className="w-12 h-12 mb-2 text-text-secondary mx-auto" />
@@ -48,7 +52,7 @@ export function PerformanceChart({ data, height = 200, showTooltip = true, isLoa
 
   return (
     <div className="w-full">
-      <ResponsiveContainer width="100%" height={height}>
+      <ResponsiveContainer width="100%" height={computedHeight}>
         <AreaChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
           <defs>
             <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">

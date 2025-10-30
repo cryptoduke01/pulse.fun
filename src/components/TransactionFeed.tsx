@@ -17,9 +17,9 @@ export function TransactionFeed({
   const [expandedTx, setExpandedTx] = useState<string | null>(null);
   const [showAllTransactions, setShowAllTransactions] = useState(showAll);
 
-  // Show only first 5 transactions initially, or all if showAllTransactions is true
-  const displayedTransactions = showAllTransactions 
-    ? transactions 
+  // Show only first `maxInitial` transactions initially, or all if showAllTransactions is true
+  const displayedTransactions = showAllTransactions
+    ? transactions
     : transactions.slice(0, maxInitial);
 
   const getTransactionIcon = (tx: any) => {
@@ -92,7 +92,9 @@ export function TransactionFeed({
   if (transactions.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-6xl mb-4">📊</div>
+        <div className="mx-auto w-10 h-10 mb-3 rounded-md border border-border flex items-center justify-center">
+          <FileText className="w-5 h-5 text-text-secondary" />
+        </div>
         <h3 className="text-text-primary text-lg font-semibold mb-2">No transactions yet</h3>
         <p className="text-text-secondary">
           This wallet hasn't made any transactions yet.
@@ -188,7 +190,7 @@ export function TransactionFeed({
           {/* Toggle details button */}
           <button
             onClick={() => setExpandedTx(expandedTx === tx.id ? null : tx.id)}
-            className="mt-3 text-accent text-sm font-medium hover:text-accent/80 transition-colors duration-200"
+            className="mt-3 text-accent text-sm font-medium hover:text-accent/80 transition-colors duration-200 cursor-pointer"
           >
             {expandedTx === tx.id ? 'Hide details' : 'Show details'}
           </button>
@@ -200,7 +202,7 @@ export function TransactionFeed({
         <div className="text-center pt-4">
           <button
             onClick={() => setShowAllTransactions(!showAllTransactions)}
-            className="bg-accent/10 text-accent hover:bg-accent/20 px-6 py-2 rounded-lg font-medium transition-all duration-200"
+            className="bg-accent/10 text-accent hover:bg-accent/20 px-6 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer"
           >
             {showAllTransactions ? 'Show Less' : `View More (${transactions.length - maxInitial} more)`}
           </button>
@@ -213,7 +215,7 @@ export function TransactionFeed({
           <button
             onClick={onLoadMore}
             disabled={isLoading}
-            className="bg-accent/10 text-accent hover:bg-accent/20 px-6 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-accent/10 text-accent hover:bg-accent/20 px-6 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLoading ? 'Loading...' : 'Load More'}
           </button>

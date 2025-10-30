@@ -108,7 +108,7 @@ export function ActivityFeed({ walletAddress, limit = 50 }: ActivityFeedProps) {
   if (error) {
     return (
       <div className="text-center py-8">
-        <div className="text-4xl mb-2">⚠️</div>
+        <div className="mb-2 flex justify-center"><span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-yellow-500/10 text-yellow-400">!</span></div>
         <p className="text-text-secondary mb-4">{error}</p>
         <button
           onClick={fetchActivities}
@@ -123,7 +123,7 @@ export function ActivityFeed({ walletAddress, limit = 50 }: ActivityFeedProps) {
   if (activities.length === 0) {
     return (
       <div className="text-center py-8">
-        <div className="text-4xl mb-2">📋</div>
+        <div className="mb-2 flex justify-center"><span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-surface text-text-secondary">—</span></div>
         <p className="text-text-secondary">No recent activity</p>
       </div>
     );

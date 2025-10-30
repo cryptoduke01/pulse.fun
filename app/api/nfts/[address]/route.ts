@@ -29,44 +29,65 @@ export async function GET(
       return NextResponse.json({ error: 'Zerion API key not configured' }, { status: 500 });
     }
 
-    // For now, return mock data since Zerion NFT API requires different parameters
-    // TODO: Research correct Zerion API endpoint for wallet NFTs
-    const mockNfts = [
-      {
-        id: 'mock-nft-1',
-        name: 'Cool NFT #1234',
-        collection_name: 'Cool Collection',
-        image_url: 'https://via.placeholder.com/300x300/6366f1/ffffff?text=NFT',
-        floor_price_usd: 0.5,
-        last_sale_price_usd: 1.2,
-        rarity_rank: 15,
-        rarity_score: 0.95,
-        traits: [
-          { name: 'Background', value: 'Blue' },
-          { name: 'Eyes', value: 'Laser' }
-        ],
-        token_id: '1234',
-        contract_address: '0x1234567890123456789012345678901234567890',
-      },
-      {
-        id: 'mock-nft-2',
-        name: 'Rare NFT #5678',
-        collection_name: 'Rare Collection',
-        image_url: 'https://via.placeholder.com/300x300/8b5cf6/ffffff?text=RARE',
-        floor_price_usd: 2.1,
-        last_sale_price_usd: 3.5,
-        rarity_rank: 3,
-        rarity_score: 0.99,
-        traits: [
-          { name: 'Background', value: 'Purple' },
-          { name: 'Hat', value: 'Crown' }
-        ],
-        token_id: '5678',
-        contract_address: '0x1234567890123456789012345678901234567890',
-      }
-    ];
+    // Zerion NFTs for a wallet: filter by references (owner address)
+    let url = `https://api.zerion.io/v1/nfts/?currency=usd&filter[references]=${address}&page[size]=${Math.min(
+      Math.max(limit, 1),
+      50
+    )}`;
 
-    return NextResponse.json({ nfts: mockNfts, pagination: { next: null } });
+    let response = await fetch(url, {
+      headers: {
+        'Authorization': `Basic ${Buffer.from(zerionApiKey + ':').toString('base64')}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      // Retry with alternate parameter name used by some Zerion docs
+      url = `https://api.zerion.io/v1/nfts/?currency=usd&filter[owner_addresses]=${address}&page[size]=${Math.min(
+        Math.max(limit, 1),
+        50
+      )}`;
+      response = await fetch(url, {
+        headers: {
+          'Authorization': `Basic ${Buffer.from(zerionApiKey + ':').toString('base64')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return NextResponse.json(
+          { error: errorData.error || 'Failed to fetch NFTs', details: errorData },
+          { status: response.status }
+        );
+      }
+    }
+
+    const data = await response.json();
+    const items = Array.isArray(data?.data) ? data.data : [];
+
+    const nfts = items.map((item: any) => {
+      const a = item.attributes || {};
+      const collection = a.collection || {};
+      return {
+        id: item.id,
+        name: a.name || a.title || 'NFT',
+        description: a.description || '',
+        image_url: a.image_url || a.image || '',
+        collection_name: collection?.name || 'Unknown',
+        token_id: a.token_id || a.tokenId || '',
+        contract_address: a.asset_contract || a.contract_address || '',
+        floor_price_usd: a.floor_price_usd || 0,
+        last_sale_price_usd: a.last_sale_price_usd || 0,
+        rarity_rank: a.rarity_rank || null,
+        traits: Array.isArray(a.traits)
+          ? a.traits.map((t: any) => ({ trait_type: t.trait_type || t.type, value: t.value }))
+          : [],
+        chain_id: a.chain || a.network || 'ethereum',
+      };
+    });
+
+    return NextResponse.json({ nfts, pagination: data?.links || {} });
 
     /* Original Zerion API call - commented out until we figure out correct parameters
     const response = await fetch(`https://api.zerion.io/v1/nfts/?currency=usd&limit=${limit}&filter[references]=${address}`, {

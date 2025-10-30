@@ -31,15 +31,15 @@ export async function GET(
   } catch (error: any) {
     console.error('Portfolio API error:', error);
 
-    // Handle specific error types
-    if (error.response?.status === 401) {
+    // Handle specific error types (ApiError uses string code)
+    if (error.code === '401') {
       return NextResponse.json(
         { error: 'Invalid API key', code: 'INVALID_API_KEY' },
         { status: 401 }
       );
     }
 
-    if (error.response?.status === 429) {
+    if (error.code === '429') {
       return NextResponse.json(
         { error: 'Rate limit exceeded', code: 'RATE_LIMIT' },
         { status: 429 }

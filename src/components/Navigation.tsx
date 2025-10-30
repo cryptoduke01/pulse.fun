@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WalletConnect } from './WalletConnect';
 import { useConnectedWallet } from '../store/useStore';
+import { Toaster } from './Toaster';
 
 export function Navigation() {
   const pathname = usePathname();
@@ -33,6 +34,7 @@ export function Navigation() {
   };
 
   return (
+    <>
     <motion.nav 
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -173,5 +175,8 @@ export function Navigation() {
         </AnimatePresence>
       </div>
     </motion.nav>
+    {/* Global toasts */}
+    <Toaster />
+    </>
   );
 }

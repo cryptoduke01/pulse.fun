@@ -11,10 +11,8 @@ export function usePortfolio(address: string) {
     staleTime: 30000, // 30 seconds
     gcTime: 300000, // 5 minutes
     retry: (failureCount, error: any) => {
-      // Don't retry on 401 (invalid API key) or 400 (bad request)
-      if (error?.response?.status === 401 || error?.response?.status === 400) {
-        return false;
-      }
+      // ApiError exposes numeric HTTP code as string in error.code
+      if (error?.code === '401' || error?.code === '400') return false;
       return failureCount < 3;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
@@ -31,13 +29,11 @@ export function useTransactions(address: string, pageSize: number = 100) {
       }),
     enabled: !!address,
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.links?.next,
     staleTime: 60000, // 1 minute
     gcTime: 600000, // 10 minutes
     retry: (failureCount, error: any) => {
-      if (error?.response?.status === 401 || error?.response?.status === 400) {
-        return false;
-      }
+      if (error?.code === '401' || error?.code === '400') return false;
       return failureCount < 3;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
@@ -59,9 +55,7 @@ export function useWalletStats(address: string) {
     queryKey: ['walletStats', address],
     retry: (failureCount, error: any) => {
       // Don't retry on 401 (invalid API key) or 400 (bad request)
-      if (error?.response?.status === 401 || error?.response?.status === 400) {
-        return false;
-      }
+      if (error?.code === '401' || error?.code === '400') return false;
       return failureCount < 2; // Reduced retries to avoid overwhelming the API
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Max 10 seconds
@@ -78,7 +72,7 @@ export function useWalletStats(address: string) {
         console.log('useWalletStats: Got portfolio:', portfolio);
         console.log('useWalletStats: Got transactions:', transactionsResult);
         console.log('useWalletStats: transactionsResult.data:', transactionsResult.data);
-        console.log('useWalletStats: transactionsResult.transactions:', transactionsResult.transactions);
+        // transactionsResult has shape { data, links }
 
         const tradingStyle = analyzeTradingStyle(transactionsResult.data || []);
         console.log('useWalletStats: Trading style:', tradingStyle);

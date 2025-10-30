@@ -101,7 +101,7 @@ export function TradingSignals({ className = '' }: TradingSignalsProps) {
             href="/discover"
             className="text-accent hover:text-accent/80 text-sm font-medium transition-colors"
           >
-            Discover wallets to follow →
+            Discover wallets to follow &rarr;
           </a>
         </div>
       </div>

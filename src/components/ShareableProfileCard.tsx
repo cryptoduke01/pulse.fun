@@ -108,11 +108,11 @@ export function ShareableProfileCard({ wallet, stats }: ShareableProfileCardProp
     <div className="bg-surface border border-border rounded-xl p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-text-primary">Share Profile</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <motion.button
             onClick={handleShare}
             disabled={isSharing}
-            className="flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent hover:bg-accent/20 rounded-lg font-medium transition-all duration-200 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent hover:bg-accent/20 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 w-full sm:w-auto"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -122,7 +122,7 @@ export function ShareableProfileCard({ wallet, stats }: ShareableProfileCardProp
           
           <motion.button
             onClick={handleCopyProfile}
-            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border hover:border-accent/50 text-text-primary rounded-lg font-medium transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border hover:border-accent/50 text-text-primary rounded-lg font-medium transition-all duration-200 w-full sm:w-auto"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -132,7 +132,7 @@ export function ShareableProfileCard({ wallet, stats }: ShareableProfileCardProp
 
           <motion.button
             onClick={handleDownloadCard}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600/10 text-purple-400 hover:bg-purple-600/20 rounded-lg font-medium transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600/10 text-purple-400 hover:bg-purple-600/20 rounded-lg font-medium transition-all duration-200 w-full sm:w-auto"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >

@@ -41,43 +41,10 @@ export async function GET(request: NextRequest) {
           const totalValue = attributes.total?.positions || 0;
           const changes = attributes.changes || {};
           
-          // Get realistic transaction count by fetching actual data
-          let totalTrades = 0;
-          let activeDays = 0;
-          try {
-            const txResponse = await fetch(`https://api.zerion.io/v1/wallets/${address}/transactions?page_size=100`, {
-              headers: {
-                'Authorization': `Basic ${Buffer.from(process.env.NEXT_PUBLIC_ZERION_API_KEY + ':').toString('base64')}`,
-                'Content-Type': 'application/json',
-              },
-            });
-            if (txResponse.ok) {
-              const txData = await txResponse.json();
-              const transactions = txData.data || [];
-              totalTrades = transactions.length;
-              
-              // Calculate active days from transaction timestamps
-              const uniqueDays = new Set(
-                transactions.map((tx: any) => 
-                  tx.attributes.timestamp ? new Date(tx.attributes.timestamp).toDateString() : 'Unknown'
-                )
-              ).size;
-              activeDays = uniqueDays;
-            }
-          } catch (error) {
-            console.warn(`Failed to get transaction data for ${address}:`, error);
-            // Fallback to realistic estimates based on wallet type
-            if (address === '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045') { // Vitalik
-              totalTrades = 1500;
-              activeDays = 200;
-            } else if (address.includes('Binance') || address.includes('0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6')) {
-              totalTrades = 50000;
-              activeDays = 365;
-            } else {
-              totalTrades = 500;
-              activeDays = 100;
-            }
-          }
+          // We avoid fetching transactions here due to rate limits and unreliability.
+          // Instead, we focus on reliable portfolio stats. Trades/active_days set to null.
+          const totalTrades = null;
+          const activeDays = null;
 
           wallets.push({
             id: address,

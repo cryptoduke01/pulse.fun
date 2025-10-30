@@ -45,13 +45,13 @@ export async function GET(
       stack: error.stack
     });
     
-    // Handle specific error types
-    if (error.code === 'ZERION_AUTH_ERROR') {
+    // Handle specific error types (ApiError uses string numeric HTTP code)
+    if (error.code === '401') {
       return NextResponse.json(
         { error: 'Invalid Zerion API key', code: 'AUTH_ERROR' },
         { status: 401 }
       );
-    } else if (error.code === 'ZERION_RATE_LIMIT') {
+    } else if (error.code === '429') {
       return NextResponse.json(
         { error: 'Rate limit exceeded', code: 'RATE_LIMIT' },
         { status: 429 }

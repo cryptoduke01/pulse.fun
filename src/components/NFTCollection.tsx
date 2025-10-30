@@ -36,10 +36,16 @@ export function NFTCollection({ walletAddress, limit = 12 }: NFTCollectionProps)
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
+    // Avoid 404 when address is empty during first render
+    if (!walletAddress || walletAddress.length !== 42) {
+      setIsLoading(false);
+      return;
+    }
     fetchNFTs();
   }, [walletAddress]);
 
   const fetchNFTs = async () => {
+    if (!walletAddress || walletAddress.length !== 42) return;
     setIsLoading(true);
     setError(null);
     try {
