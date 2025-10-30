@@ -41,9 +41,9 @@ export default function TestValuesPage() {
       {transactions?.data && (
         <div className="mb-6 p-4 border rounded">
           <h2 className="text-lg font-semibold mb-2">Transactions Data</h2>
-          <p>Total transactions fetched: {transactions.data.pages.flatMap(page => page.transactions).length}</p>
+          <p>Total transactions fetched: {transactions.data.pages.flatMap(page => page.data).length}</p>
           <pre className="text-sm bg-gray-100 p-2 rounded overflow-auto max-h-40">
-            {JSON.stringify(transactions.data.pages[0]?.transactions?.slice(0, 3), null, 2)}
+            {JSON.stringify(transactions.data.pages[0]?.data?.slice(0, 3), null, 2)}
           </pre>
         </div>
       )}
